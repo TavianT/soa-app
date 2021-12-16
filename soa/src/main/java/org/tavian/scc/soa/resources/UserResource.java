@@ -1,5 +1,6 @@
 package org.tavian.scc.soa.resources;
 
+import java.io.File;
 import java.util.Random;
 
 import org.tavian.scc.soa.ServiceUtils;
@@ -21,8 +22,11 @@ public class UserResource {
 //		int lowerBound = 10000;
 //		int upperBound = 20000;
 //		int randId = rand.nextInt(lowerBound, upperBound);
-		ServiceUtils.requestUniqueIds();
-		user.setId(0);
+		File idFile = new File(ServiceUtils.ID_FILE);
+		if(!idFile.isFile()) {
+			ServiceUtils.requestUniqueIds();
+		}
+		user.setId(ServiceUtils.getUniqueId());
 		return user;
 	}
 }
