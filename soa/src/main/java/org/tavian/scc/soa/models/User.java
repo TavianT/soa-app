@@ -1,4 +1,4 @@
-package org.tavian.scc.soa;
+package org.tavian.scc.soa.models;
 
 public class User {
 	int id;
