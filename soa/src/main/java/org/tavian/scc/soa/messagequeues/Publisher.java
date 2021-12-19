@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 public class Publisher {
 	private static enum EXCHANGE_TYPE {DIRECT, FANOUT, TOPIC, HEADERS};
 
-	private final static String EXCHANGE_NAME = "n0790170_exchange";
+	private final static String EXCHANGE_NAME = "TRAVEL_OFFERS";
 	private ConnectionFactory factory;
 	private String topic = "";
 	Connection connection;
