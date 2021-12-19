@@ -1,10 +1,13 @@
 package org.tavian.scc.soa.resources;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.tavian.scc.soa.ServiceUtils;
+import org.tavian.scc.soa.messagequeues.Publisher;
 import org.tavian.scc.soa.models.Proposal;
 
 import jakarta.ws.rs.Consumes;
@@ -19,6 +22,13 @@ public class ProposalResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void createProposal(Proposal proposal) {
+		//debug
+		System.out.println("userId: " + proposal.getUserId());
+		System.out.println("tripProposalDate: " + proposal.getTripProposalDate());
+		System.out.println("location: " + proposal.getLocation().getName());
+		System.out.println("lon: " + proposal.getLocation().getLongitude());
+		System.out.println("lat: " + proposal.getLocation().getLatitude());
+		
 		//error checks
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyy");
 		try {
@@ -26,15 +36,29 @@ public class ProposalResource {
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.DATE, 14);
 			Date dateFourteenDaysFromCurrent = calendar.getTime();
+			//check if proposal is within 14 days
 			if (tripDate.after(dateFourteenDaysFromCurrent)) {
 				throw new WebApplicationException(Response.Status.BAD_REQUEST);
 			}
-			if (Integer.parseInt(proposal.getLocation().getLatitude()) < -90 && Integer.parseInt(proposal.getLocation().getLatitude()) > 90) {
+			//check if latitude is within -90 and 90
+			if (Double.parseDouble(proposal.getLocation().getLatitude()) < -90 || Double.parseDouble(proposal.getLocation().getLatitude()) > 90) {
 				throw new WebApplicationException(Response.Status.BAD_REQUEST);
 			}
-			if (Integer.parseInt(proposal.getLocation().getLongitude()) < -180 && Integer.parseInt(proposal.getLocation().getLongitude()) > 180) {
+			//check if longitude is within -180 and 180
+			if (Double.parseDouble(proposal.getLocation().getLongitude()) < -180 || Double.parseDouble(proposal.getLocation().getLongitude()) > 180) {
 				throw new WebApplicationException(Response.Status.BAD_REQUEST);
 			}
+			
+			File idFile = new File(ServiceUtils.ID_FILE);
+			//check if file exists or exists and is empty
+			if(!idFile.isFile() || idFile.length() == 0) {
+				ServiceUtils.requestUniqueIds();
+			}
+			proposal.setMsgId(String.valueOf(ServiceUtils.getUniqueId()));
+			
+			//Publish message to message queue
+			Publisher publisher = new Publisher();
+			publisher.publishProposal(proposal);
 			
 			
 		} catch (ParseException e) {

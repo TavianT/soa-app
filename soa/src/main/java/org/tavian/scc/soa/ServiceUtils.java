@@ -16,13 +16,14 @@ import java.util.Random;
 
 
 public class ServiceUtils {
-	public static final String ID_FILE = "unique_ids.txt";
+	//TODO: THIS IS TEMP FILE PATH CHANGE LATER!!!
+	public static final String ID_FILE = "C:\\Users\\Tavian\\Desktop\\unique_ids.txt";
 	public static void requestUniqueIds() {
 		HttpClient client = HttpClient.newHttpClient();
 		
 		Random rand = new Random();
 		int min = rand.nextInt(100000,100000000);
-		int max = min + 999;
+		int max = min + 9;
 		String requestString = "https://www.random.org/sequences/?min=" + min + "&max=" + max + "&col=1&format=plain&rnd=new";
 		System.out.println("requestString: " + requestString);
 		
@@ -51,7 +52,8 @@ public class ServiceUtils {
 	public static int getUniqueId() {
 		try {
 			File idFile = new File(ID_FILE);
-			File tempFile = new File("temp_file.txt");
+			//TODO: THIS IS TEMP FILE PATH CHANGE LATER!!!
+			File tempFile = new File("C:\\\\Users\\\\Tavian\\\\Desktop\\\\unique_ids.txttemp_file.txt");
 			BufferedReader br = new BufferedReader(new FileReader(idFile));
 			BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
 
