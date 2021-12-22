@@ -13,15 +13,18 @@ import org.tavian.scc.soa.models.Proposal;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 @Path("proposal")
 public class ProposalResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void createProposal(Proposal proposal) {
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response createProposal(Proposal proposal) {
 		//debug
 		System.out.println("userId: " + proposal.getUserId());
 		System.out.println("tripProposalDate: " + proposal.getTripProposalDate());
@@ -30,7 +33,7 @@ public class ProposalResource {
 		System.out.println("lat: " + proposal.getLocation().getLatitude());
 		
 		//error checks
-		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyy");
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		try {
 			Date tripDate = sdf.parse(proposal.getTripProposalDate());
 			Calendar calendar = Calendar.getInstance();
@@ -56,15 +59,22 @@ public class ProposalResource {
 			}
 			proposal.setMsgId(String.valueOf(ServiceUtils.getUniqueId()));
 			
+			System.out.println("msgId: " + proposal.getMsgId());
+			
 			//Publish message to message queue
 			Publisher publisher = new Publisher();
+			publisher.setTopic("proposals");
 			publisher.publishProposal(proposal);
 			
+			return Response.status(Status.CREATED)
+					.entity(proposal)
+					.build();
 			
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			//throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 		}
+		return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 	}
 }

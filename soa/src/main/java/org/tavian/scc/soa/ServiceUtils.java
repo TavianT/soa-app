@@ -18,12 +18,13 @@ import java.util.Random;
 public class ServiceUtils {
 	//TODO: THIS IS TEMP FILE PATH CHANGE LATER!!!
 	public static final String ID_FILE = "C:\\Users\\Tavian\\Desktop\\unique_ids.txt";
+	public static final String JSON_FOLDER = "C:\\Users\\Tavian\\Desktop\\json_files\\";
 	public static void requestUniqueIds() {
 		HttpClient client = HttpClient.newHttpClient();
 		
 		Random rand = new Random();
 		int min = rand.nextInt(100000,100000000);
-		int max = min + 9;
+		int max = min + 999;
 		String requestString = "https://www.random.org/sequences/?min=" + min + "&max=" + max + "&col=1&format=plain&rnd=new";
 		System.out.println("requestString: " + requestString);
 		
@@ -53,7 +54,7 @@ public class ServiceUtils {
 		try {
 			File idFile = new File(ID_FILE);
 			//TODO: THIS IS TEMP FILE PATH CHANGE LATER!!!
-			File tempFile = new File("C:\\\\Users\\\\Tavian\\\\Desktop\\\\unique_ids.txttemp_file.txt");
+			File tempFile = new File("C:\\Users\\Tavian\\Desktop\\temp_file.txt");
 			BufferedReader br = new BufferedReader(new FileReader(idFile));
 			BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
 
@@ -73,5 +74,32 @@ public class ServiceUtils {
 			e.printStackTrace();
 		}
 		return -1;
+	}
+	
+	public static String getWeatherFromDate(String lat, String lon, String date) {
+		String requestString = "http://api.worldweatheronline.com/premium/v1/weather.ashx?key=3100d91cf2d844059fd220850211912&q=" + lat + "," + lon + "&format=json&date=" + date;
+		String jsonFileName = lat + "_" + lon + "_" + date + ".json";
+		HttpClient client = HttpClient.newHttpClient();
+		HttpRequest request = HttpRequest.newBuilder(
+				URI.create(requestString))
+				.header("accept", "application/json")
+				.build();
+		
+		try {
+			HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+			System.out.println(response.body());
+			if(response.statusCode() == 200) {
+				File jsonFile = new File(JSON_FOLDER + jsonFileName);
+				jsonFile.createNewFile();
+				FileWriter writer = new FileWriter(jsonFile);
+				writer.write(response.body());
+				writer.close();
+				System.out.println("Saved to file: " + jsonFile);
+				return response.body();
+			}
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

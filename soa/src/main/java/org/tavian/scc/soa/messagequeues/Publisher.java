@@ -15,11 +15,12 @@ import java.nio.charset.StandardCharsets;
 public class Publisher {
 	private static enum EXCHANGE_TYPE {DIRECT, FANOUT, TOPIC, HEADERS};
 
-	private final static String EXCHANGE_NAME = "TRAVEL_OFFERS";
+	private final static String OFFERS_EXCHANGE_NAME = "TRAVEL_OFFERS";
+	private final static String INTENT_EXCHANGE_NAME = "TRAVEL_INTENT";
 	private ConnectionFactory factory;
 	private String topic = "";
-	Connection connection;
-	Channel channel;
+	//Connection connection;
+	//Channel channel;
 	ObjectMapper mapper;
 	
 	public Publisher() {
@@ -30,13 +31,19 @@ public class Publisher {
         mapper = new ObjectMapper();
 	}
 	
+	public void setTopic(String topic) {
+		this.topic = topic;
+	}
+	
 	public void publishProposal(Proposal proposal) {
-		try {
+		try(Connection connection = factory.newConnection();
+			Channel channel = connection.createChannel()) {
 			String proposalString = mapper.writeValueAsString(proposal);
-			connection = factory.newConnection();
-			channel = connection.createChannel();
-			channel.exchangeDeclare(EXCHANGE_NAME, EXCHANGE_TYPE.FANOUT.toString().toLowerCase());
-			channel.basicPublish(EXCHANGE_NAME,
+			
+			//channel.exchangeDelete(OFFERS_EXCHANGE_NAME);
+			
+			channel.exchangeDeclare(OFFERS_EXCHANGE_NAME, EXCHANGE_TYPE.TOPIC.toString().toLowerCase());
+			channel.basicPublish(OFFERS_EXCHANGE_NAME,
 					topic,
 					new AMQP.BasicProperties.Builder()
 					.contentType(MediaType.APPLICATION_JSON)
@@ -46,11 +53,9 @@ public class Publisher {
 					.build(),
 				proposalString.getBytes(StandardCharsets.UTF_8));
 			System.out.println(" [x] Sent '" + topic + ":" + proposalString + "'");
-		} catch(Exception e) {}
-	}
-	
-	public void setTopic(String topic) {
-		this.topic = topic;
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 }
