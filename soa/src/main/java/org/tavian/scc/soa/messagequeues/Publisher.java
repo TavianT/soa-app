@@ -1,5 +1,6 @@
 package org.tavian.scc.soa.messagequeues;
 
+import org.tavian.scc.soa.models.Intent;
 import org.tavian.scc.soa.models.Proposal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,7 +11,9 @@ import com.rabbitmq.client.ConnectionFactory;
 
 import jakarta.ws.rs.core.MediaType;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeoutException;
 
 public class Publisher {
 	private static enum EXCHANGE_TYPE {DIRECT, FANOUT, TOPIC, HEADERS};
@@ -54,6 +57,30 @@ public class Publisher {
 				proposalString.getBytes(StandardCharsets.UTF_8));
 			System.out.println(" [x] Sent '" + topic + ":" + proposalString + "'");
 		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void publishIntent(Intent intent) {
+		try(Connection connection = factory.newConnection();
+				Channel channel = connection.createChannel()) {
+			String intentString = mapper.writeValueAsString(intent);
+			channel.exchangeDeclare(INTENT_EXCHANGE_NAME, EXCHANGE_TYPE.TOPIC.toString().toLowerCase());
+			channel.basicPublish(INTENT_EXCHANGE_NAME,
+					topic,
+					new AMQP.BasicProperties.Builder()
+					.contentType(MediaType.APPLICATION_JSON)
+					.deliveryMode(2)
+					.priority(1)
+					.userId("student")
+					.build(),
+					intentString.getBytes(StandardCharsets.UTF_8));
+			System.out.println(" [x] Sent '" + topic + ":" + intentString + "'");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TimeoutException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

@@ -63,7 +63,7 @@ public class Subscriber {
 	        
 	        while(channel.messageCount(queueName) > 0) {
 	        	//TODO: change back to true if not working correctly
-	        	channel.basicConsume(queueName, false, deliverCallback, consumerTag -> { });
+	        	channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
 	        }
 	        channel.close();
 	        

@@ -47,6 +47,7 @@ public class OffersResource {
 		Date dateFourteenDaysFromCurrent = calendar.getTime();
 		List<Proposal> proposals = subscriber.consumeProposals(userId);
 		if(proposals.isEmpty()) {
+			System.out.println("No proposals");
 			return null;
 		}
 		Iterator<Proposal> i = proposals.iterator();
@@ -57,6 +58,7 @@ public class OffersResource {
 				
 				if(tripDate.before(todaysDate) || tripDate.after(dateFourteenDaysFromCurrent)) {
 					i.remove();
+					System.out.println("Invalid date on" + proposal.getLocation().getName() + "-" + proposal.getTripProposalDate());
 				}
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -96,6 +98,9 @@ public class OffersResource {
 				weather.setTemp(temp);
 				weather.setWindSpeed(windSpeed);
 				weather.setWeatherDesc(weatherDesc);
+				System.out.println("Temperature: " + weather.getTemp());
+				System.out.println("wind speed: " + weather.getWindSpeed());
+				System.out.println("weather description" + weather.getWeatherDesc());
 				Offer offer = new Offer();
 				offer.setProposal(proposal);
 				offer.setWeather(weather);
