@@ -11,7 +11,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
-@Path("create_intent")
+@Path("create-intent")
 public class CreateIntentResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
