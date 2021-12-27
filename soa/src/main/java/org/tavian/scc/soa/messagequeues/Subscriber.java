@@ -3,6 +3,7 @@ package org.tavian.scc.soa.messagequeues;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.tavian.scc.soa.models.ErrorMessage;
 import org.tavian.scc.soa.models.Intent;
 import org.tavian.scc.soa.models.Proposal;
 
@@ -12,6 +13,10 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+
 public class Subscriber {
 	private static enum EXCHANGE_TYPE {DIRECT, FANOUT, TOPIC, HEADERS};
 	
@@ -19,8 +24,6 @@ public class Subscriber {
 	private final static String INTENT_EXCHANGE_NAME = "TRAVEL_INTENT";
 	private ConnectionFactory factory;
 	private String topic = "";
-	Connection connection;
-	Channel channel;
 	ObjectMapper mapper;
 	
 	public Subscriber() {
@@ -33,6 +36,17 @@ public class Subscriber {
 	
 	public void setTopic(String topic) {
 		this.topic = topic;
+	}
+	
+	public void declareQueue(int userId) {
+		try {
+			Connection connection = factory.newConnection();
+	        Channel channel = connection.createChannel();
+	        channel.queueDeclare(String.valueOf(userId), true, false, false, null);
+	        channel.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public List<Proposal> consumeProposals(int userId) {
@@ -59,12 +73,18 @@ public class Subscriber {
 	        };
 	        
 	        while(channel.messageCount(queueName) > 0) {
-	        	channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
+	        	//TODO: MIGHT NEED TO CHANGE BACK TO true
+	        	channel.basicConsume(queueName, false, deliverCallback, consumerTag -> { });
 	        }
 	        channel.close();
 	        
 		} catch (Exception e) {
 			e.printStackTrace();
+			ErrorMessage errorMessage = new ErrorMessage("Unable to receive proposals. Please try again later.", 500);
+			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
+					.entity(errorMessage)
+					.build();
+			throw new WebApplicationException(response);
 		}
 		System.out.println("proposals list size: " + proposals.size());
 		return proposals;
@@ -94,12 +114,18 @@ public class Subscriber {
 	        };
 	        
 	        while(channel.messageCount(queueName) > 0) {
-	        	channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
+	        	//TODO: MIGHT NEED TO CHANGE BACK TO true
+	        	channel.basicConsume(queueName, false, deliverCallback, consumerTag -> { });
 	        }
 	        channel.close();
 	        
 		} catch (Exception e) {
 			e.printStackTrace();
+			ErrorMessage errorMessage = new ErrorMessage("Unable to receive intents. Please try again later.", 500);
+			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
+					.entity(errorMessage)
+					.build();
+			throw new WebApplicationException(response);
 		}
 		System.out.println("Intents list size: " + intents.size());
 		return intents;

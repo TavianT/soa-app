@@ -14,6 +14,12 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Random;
 
+import org.tavian.scc.soa.models.ErrorMessage;
+
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+
 
 public class ServiceUtils {
 	//TODO: THIS IS TEMP FILE PATH CHANGE LATER!!!
@@ -47,10 +53,16 @@ public class ServiceUtils {
 		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			ErrorMessage errorMessage = new ErrorMessage("Unable to generate UserID. Please Try again later.", 500);
+			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
+					.entity(errorMessage)
+					.build();
+			throw new WebApplicationException(response);
 		}
 	}
 	
 	public static int getUniqueId() {
+		int id = -1;
 		try {
 			File idFile = new File(ID_FILE);
 			//TODO: THIS IS TEMP FILE PATH CHANGE LATER!!!
@@ -59,7 +71,7 @@ public class ServiceUtils {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
 
 			String idString = br.readLine();
-			int id = Integer.parseInt(idString);
+			id = Integer.parseInt(idString);
 			String currentLine;
 			while((currentLine = br.readLine()) != null) {
 				bw.write(currentLine + System.getProperty("line.separator"));
@@ -68,12 +80,11 @@ public class ServiceUtils {
 			br.close();
 			idFile.delete();
 			tempFile.renameTo(idFile);
-			return id;
 		} catch (IOException | NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return -1;
+		return id;
 	}
 	
 	public static String getWeatherFromDate(String lat, String lon, String date) {

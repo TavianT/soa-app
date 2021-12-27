@@ -8,6 +8,7 @@ import java.util.Date;
 
 import org.tavian.scc.soa.ServiceUtils;
 import org.tavian.scc.soa.messagequeues.Publisher;
+import org.tavian.scc.soa.models.ErrorMessage;
 import org.tavian.scc.soa.models.Proposal;
 
 import jakarta.ws.rs.Consumes;
@@ -39,17 +40,37 @@ public class ProposalResource {
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.DATE, 14);
 			Date dateFourteenDaysFromCurrent = calendar.getTime();
+			Date currentDate = new Date();
 			//check if proposal is within 14 days
 			if (tripDate.after(dateFourteenDaysFromCurrent)) {
-				throw new WebApplicationException(Response.Status.BAD_REQUEST);
+				ErrorMessage errorMessage = new ErrorMessage("Trip date is not within 14 days of current date. Please select a valid date.", 400);
+				Response response = Response.status(Status.BAD_REQUEST)
+						.entity(errorMessage)
+						.build();
+				throw new WebApplicationException(response);
+			}
+			if(tripDate.before(currentDate)) {
+				ErrorMessage errorMessage = new ErrorMessage("Trip date is before current date. Please select a valid date.", 400);
+				Response response = Response.status(Status.BAD_REQUEST)
+						.entity(errorMessage)
+						.build();
+				throw new WebApplicationException(response);
 			}
 			//check if latitude is within -90 and 90
 			if (Double.parseDouble(proposal.getLocation().getLatitude()) < -90 || Double.parseDouble(proposal.getLocation().getLatitude()) > 90) {
-				throw new WebApplicationException(Response.Status.BAD_REQUEST);
+				ErrorMessage errorMessage = new ErrorMessage("Latitude invalid. Please input a correct", 400);
+				Response response = Response.status(Status.BAD_REQUEST)
+						.entity(errorMessage)
+						.build();
+				throw new WebApplicationException(response);
 			}
 			//check if longitude is within -180 and 180
 			if (Double.parseDouble(proposal.getLocation().getLongitude()) < -180 || Double.parseDouble(proposal.getLocation().getLongitude()) > 180) {
-				throw new WebApplicationException(Response.Status.BAD_REQUEST);
+				ErrorMessage errorMessage = new ErrorMessage("Longitutde invalid. Please input a correct", 400);
+				Response response = Response.status(Status.BAD_REQUEST)
+						.entity(errorMessage)
+						.build();
+				throw new WebApplicationException(response);
 			}
 			
 			File idFile = new File(ServiceUtils.ID_FILE);
@@ -57,7 +78,15 @@ public class ProposalResource {
 			if(!idFile.isFile() || idFile.length() == 0) {
 				ServiceUtils.requestUniqueIds();
 			}
-			proposal.setMsgId(String.valueOf(ServiceUtils.getUniqueId()));
+			int msgId = ServiceUtils.getUniqueId();
+			if (msgId < 0) {
+				ErrorMessage errorMessage = new ErrorMessage("Unable to generate msgId. Please Try again later.", 500);
+				Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
+						.entity(errorMessage)
+						.build();
+				throw new WebApplicationException(response);
+			}
+			proposal.setMsgId(String.valueOf(msgId));
 			
 			System.out.println("msgId: " + proposal.getMsgId());
 			
@@ -75,6 +104,10 @@ public class ProposalResource {
 			e.printStackTrace();
 			//throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 		}
-		return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		ErrorMessage errorMessage = new ErrorMessage("Unable to submit proposal. Please Try again later.", 500);
+		Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
+				.entity(errorMessage)
+				.build();
+		throw new WebApplicationException(response);
 	}
 }

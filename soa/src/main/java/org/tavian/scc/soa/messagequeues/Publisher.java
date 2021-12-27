@@ -1,5 +1,6 @@
 package org.tavian.scc.soa.messagequeues;
 
+import org.tavian.scc.soa.models.ErrorMessage;
 import org.tavian.scc.soa.models.Intent;
 import org.tavian.scc.soa.models.Proposal;
 
@@ -9,7 +10,10 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -57,7 +61,11 @@ public class Publisher {
 				proposalString.getBytes(StandardCharsets.UTF_8));
 			System.out.println(" [x] Sent '" + topic + ":" + proposalString + "'");
 		} catch(Exception e) {
-			e.printStackTrace();
+			ErrorMessage errorMessage = new ErrorMessage("Unable to submit Proposal. Please Try again later.", 500);
+			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
+					.entity(errorMessage)
+					.build();
+			throw new WebApplicationException(response);
 		}
 	}
 	
@@ -76,12 +84,14 @@ public class Publisher {
 					.build(),
 					intentString.getBytes(StandardCharsets.UTF_8));
 			System.out.println(" [x] Sent '" + topic + ":" + intentString + "'");
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (TimeoutException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			ErrorMessage errorMessage = new ErrorMessage("Unable to submit intent. Please Try again later.", 500);
+			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
+					.entity(errorMessage)
+					.build();
+			throw new WebApplicationException(response);
 		}
 	}
 	

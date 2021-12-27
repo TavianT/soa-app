@@ -19,6 +19,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.tavian.scc.soa.ServiceUtils;
 import org.tavian.scc.soa.messagequeues.Subscriber;
+import org.tavian.scc.soa.models.ErrorMessage;
 import org.tavian.scc.soa.models.Offer;
 import org.tavian.scc.soa.models.Proposal;
 import org.tavian.scc.soa.models.Weather;
@@ -30,6 +31,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 @Path("offers")
 public class OffersResource {
@@ -48,7 +50,7 @@ public class OffersResource {
 		List<Proposal> proposals = subscriber.consumeProposals(userId);
 		if(proposals.isEmpty()) {
 			System.out.println("No proposals");
-			return null;
+			return offers;
 		}
 		Iterator<Proposal> i = proposals.iterator();
 		while(i.hasNext()) {
@@ -69,7 +71,6 @@ public class OffersResource {
 		for(Proposal proposal : proposals) {
 			String lat = proposal.getLocation().getLatitude();
 			String lon = proposal.getLocation().getLongitude();
-//			Calendar calendar2 = Calendar.getInstance();
 			try {
 				Date tripDate = sdf.parse(proposal.getTripProposalDate());
 				//calendar2.setTime(tripDate);
@@ -79,21 +80,22 @@ public class OffersResource {
 				File jsonFile = new File(jsonFileName);
 				//check if file exists or exists and is empty
 				if(jsonFile.isFile()) {
-					//TODO: get contents from file
-					//FileReader reader = new FileReader(jsonFile);
 					weatherJson = new JSONObject(new String(Files.readAllBytes(Paths.get(jsonFileName))));
 				} else {
 					weatherJson = new JSONObject(ServiceUtils.getWeatherFromDate(lat, lon, dateAsString));
 					if(weatherJson.isEmpty()) {
-						throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+						ErrorMessage errorMessage = new ErrorMessage("Unable to get weather for " + proposal.getLocation().getName() + " Please Try again later.", 500);
+						Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
+								.entity(errorMessage)
+								.build();
+						throw new WebApplicationException(response);
 					}
 				}
 				JSONArray weatherArr = weatherJson.getJSONObject("data").getJSONArray("weather");
-				JSONObject weatherInfo = weatherArr.getJSONObject(0).getJSONArray("hourly").getJSONObject(4);
+				JSONObject weatherInfo = weatherArr.getJSONObject(0).getJSONArray("hourly").getJSONObject(4); //get weather a 12pm
 				int temp = Integer.parseInt(weatherInfo.getString("tempC"));
 				int windSpeed = Integer.parseInt(weatherInfo.getString("windspeedKmph"));
 				String weatherDesc = weatherInfo.getJSONArray("weatherDesc").getJSONObject(0).getString("value");
-				//String temp = weatherArr.getJSONObject(0).getString("avgtempC");
 				Weather weather = new Weather();
 				weather.setTemp(temp);
 				weather.setWindSpeed(windSpeed);
