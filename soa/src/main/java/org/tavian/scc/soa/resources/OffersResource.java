@@ -62,6 +62,11 @@ public class OffersResource {
 					i.remove();
 					System.out.println("Invalid date on" + proposal.getLocation().getName() + "-" + proposal.getTripProposalDate());
 				}
+				
+				if(proposal.getUserId() == userId) {
+					i.remove();
+					System.out.println("users own trip proposal");
+				}
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

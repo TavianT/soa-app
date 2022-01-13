@@ -34,6 +34,8 @@ public class UserResource {
 			throw new WebApplicationException(response);
 		}
 		user.setId(id);
+		Subscriber subscriber = new Subscriber();
+		subscriber.consumeProposals(id);
 		return Response.status(Status.OK)
 				.entity(user)
 				.build();

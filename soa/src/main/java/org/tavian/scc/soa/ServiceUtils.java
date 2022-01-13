@@ -63,6 +63,40 @@ public class ServiceUtils {
 	
 	public static int getUniqueId() {
 		int id = -1;
+		
+		HttpClient client = HttpClient.newHttpClient();
+		
+		Random rand = new Random();
+		int min = rand.nextInt(100000,100000000);
+		int max = min + 999;
+		
+		String requestString = "https://www.random.org/integers/?num=1&min=" + min + "&max="+ max + "&col=1&base=10&format=plain&rnd=new";
+		System.out.println("requestString: " + requestString);
+		
+		HttpRequest request = HttpRequest.newBuilder(
+				URI.create(requestString))
+				.header("accept", "text/plain")
+				.build();
+		
+		try {
+			HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+			System.out.println(response.body().trim());
+			if(response.statusCode() == 200) {
+				id = Integer.parseInt(response.body().trim());
+			} else {
+				id =  getIdFromFile();
+			}
+		} catch (IOException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			id =  getIdFromFile();
+			
+		}
+		return id;
+	}
+	
+	private static int getIdFromFile() {
+		int id = -1;
 		try {
 			File idFile = new File(ID_FILE);
 			//TODO: THIS IS TEMP FILE PATH CHANGE LATER!!!
@@ -83,6 +117,11 @@ public class ServiceUtils {
 		} catch (IOException | NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			ErrorMessage errorMessage = new ErrorMessage("Unable to generate UserID. Please Try again later.", 500);
+			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
+					.entity(errorMessage)
+					.build();
+			throw new WebApplicationException(response);
 		}
 		return id;
 	}

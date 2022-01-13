@@ -74,7 +74,7 @@ public class Subscriber {
 	        
 	        while(channel.messageCount(queueName) > 0) {
 	        	//TODO: MIGHT NEED TO CHANGE BACK TO true
-	        	channel.basicConsume(queueName, false, deliverCallback, consumerTag -> { });
+	        	channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
 	        }
 	        channel.close();
 	        
@@ -115,7 +115,7 @@ public class Subscriber {
 	        
 	        while(channel.messageCount(queueName) > 0) {
 	        	//TODO: MIGHT NEED TO CHANGE BACK TO true
-	        	channel.basicConsume(queueName, false, deliverCallback, consumerTag -> { });
+	        	channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
 	        }
 	        channel.close();
 	        
