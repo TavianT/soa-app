@@ -41,13 +41,14 @@ public class OffersResource {
 		List<Offer> offers = new ArrayList<Offer>();
 		Subscriber subscriber = new Subscriber();
 		subscriber.setTopic("proposals");
+		subscriber.consumeProposals(userId);
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
 		Date todaysDate = new Date();
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.DATE, 14);
 		Date dateFourteenDaysFromCurrent = calendar.getTime();
-		List<Proposal> proposals = subscriber.consumeProposals(userId);
+		List<Proposal> proposals = ServiceUtils.getProposals(userId);
 		if(proposals.isEmpty()) {
 			System.out.println("No proposals");
 			return offers;

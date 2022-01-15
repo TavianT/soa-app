@@ -3,6 +3,7 @@ package org.tavian.scc.soa.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.tavian.scc.soa.ServiceUtils;
 import org.tavian.scc.soa.messagequeues.Subscriber;
 import org.tavian.scc.soa.models.Intent;
 
@@ -19,8 +20,10 @@ public class ReadIntentResource {
 	public List<Intent> getIntents(@QueryParam("userId") int userId) {
 		List<Intent> intents = new ArrayList<Intent>();
 		Subscriber subscriber = new Subscriber();
-		subscriber.setTopic(String.valueOf(userId));
-		intents = subscriber.consumeIntents(userId);
+		subscriber.setTopic("intents_" + String.valueOf(userId));
+		subscriber.consumeIntents(userId);
+		intents = ServiceUtils.getIntents(userId);
+		
 		return intents;
 	}
 }

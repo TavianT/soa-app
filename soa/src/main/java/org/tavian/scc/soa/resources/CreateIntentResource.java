@@ -18,7 +18,7 @@ public class CreateIntentResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response createIntent(Intent intent) {
 		Publisher publisher = new Publisher();
-		publisher.setTopic(String.valueOf(intent.getProposalUserId()));
+		publisher.setTopic("intents_" + String.valueOf(intent.getProposalUserId()));
 		publisher.publishIntent(intent);
 		return Response.status(Status.CREATED)
 				.entity(intent)

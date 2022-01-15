@@ -13,14 +13,14 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 @Path("create-acknowledgement")
-public class CreateAcknowledgement {
-	@GET
+public class CreateAcknowledgementResource {
+	@POST
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
 	public Response createAcknowledgement(Acknowledgement acknowledgement) {
 		System.out.println(acknowledgement.getMsgId());
 		Publisher publisher = new Publisher();
-		publisher.setTopic("acknowledgements");
+		publisher.setTopic("acknowledgements_" + String.valueOf(acknowledgement.getIntentUserId()));
 		publisher.publishAcknowledgement(acknowledgement);
 		return Response.status(Status.CREATED)
 				.entity(acknowledgement)

@@ -35,7 +35,12 @@ public class UserResource {
 		}
 		user.setId(id);
 		Subscriber subscriber = new Subscriber();
+		subscriber.setTopic("proposals");
 		subscriber.consumeProposals(id);
+		subscriber.setTopic("intents_" + String.valueOf(id));
+		subscriber.consumeIntents(id);
+		subscriber.setTopic("acknowledgements_" + String.valueOf(id));
+		subscriber.consumeAcknowledgements(id);
 		return Response.status(Status.OK)
 				.entity(user)
 				.build();

@@ -7,6 +7,7 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 public class Acknowledgement {
 	
 	int intentUserId;
+	int userId;
 	String msgId;
 	
 	public int getIntentUserId() {
@@ -16,10 +17,20 @@ public class Acknowledgement {
 		return msgId;
 	}
 	
+	public int getUserId() {
+		return userId;
+	}
+	
 	@XmlElement(name = "intentUserId", required = true)
 	public void setIntentUserId(int intentUserId) {
 		this.intentUserId = intentUserId;
 	}
+	
+	@XmlElement(name = "userId", required = true)
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
+	
 	@XmlElement(name = "msgId", required = true)
 	public void setMsgId(String msgId) {
 		this.msgId = msgId;

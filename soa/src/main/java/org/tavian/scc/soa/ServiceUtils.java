@@ -7,24 +7,48 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.tavian.scc.soa.models.Acknowledgement;
+import org.tavian.scc.soa.models.Acknowledgements;
 import org.tavian.scc.soa.models.ErrorMessage;
+import org.tavian.scc.soa.models.Intent;
+import org.tavian.scc.soa.models.Proposal;
+
+import com.fasterxml.jackson.core.exc.StreamWriteException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 
 
 public class ServiceUtils {
 	//TODO: THIS IS TEMP FILE PATH CHANGE LATER!!!
-	public static final String ID_FILE = "C:\\Users\\Tavian\\Desktop\\unique_ids.txt";
-	public static final String JSON_FOLDER = "C:\\Users\\Tavian\\Desktop\\json_files\\";
+	public static final String ROOT = "C:\\Users\\Tavian\\Desktop\\";
+	public static final String ID_FILE = ROOT + "unique_ids.txt";
+	public static final String JSON_FOLDER = ROOT + "json_files\\";
+	public static final String PROPOSAL_FOLDER = ROOT + "proposals\\";
+	public static final String INTENT_FOLDER = ROOT + "intents\\";
+	public static final String ACKNOWLEDGEMENT_FOLDER = ROOT + "acknowledgements\\";
+	
+	
 	public static void requestUniqueIds() {
 		HttpClient client = HttpClient.newHttpClient();
 		
@@ -151,5 +175,162 @@ public class ServiceUtils {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public static void addProposal(int userId, Proposal proposal) {
+		final String PROPOSAL_FILE = String.valueOf(userId) + "_proposals.json";
+		File proposalFile = new File(PROPOSAL_FOLDER + PROPOSAL_FILE);
+		ObjectMapper mapper = new ObjectMapper();
+		List<Proposal> proposals;
+		//check if file exists or exists and is empty
+		if(!proposalFile.isFile() || proposalFile.length() == 0) {
+			proposals = new ArrayList<Proposal>();
+			proposals.add(proposal);
+			try {
+				mapper.writeValue(proposalFile, proposals);
+			} catch (StreamWriteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (DatabindException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				proposals = mapper.readValue(proposalFile, new TypeReference<List<Proposal>>(){});
+				proposals.add(proposal);
+				mapper.writeValue(proposalFile, proposals);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public static List<Proposal> getProposals(int userId)
+	{
+		final String PROPOSAL_FILE = String.valueOf(userId) + "_proposals.json";
+		File proposalFile = new File(PROPOSAL_FOLDER + PROPOSAL_FILE);
+		List<Proposal> proposals = null;
+		if(!proposalFile.isFile() || proposalFile.length() == 0) {
+			return null;
+		} else {
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				proposals = mapper.readValue(proposalFile, new TypeReference<List<Proposal>>(){});
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return proposals;
+	}
+	
+	public static void addIntent(int userId, Intent intent) {
+		final String INTENT_FILE = String.valueOf(userId) + "_intents.json";
+		File intentFile = new File(INTENT_FOLDER + INTENT_FILE);
+		ObjectMapper mapper = new ObjectMapper();
+		List<Intent> intents;
+		//check if file exists or exists and is empty
+		if(!intentFile.isFile() || intentFile.length() == 0) {
+			intents = new ArrayList<Intent>();
+			intents.add(intent);
+			try {
+				mapper.writeValue(intentFile, intents);
+			} catch (StreamWriteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (DatabindException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				intents = mapper.readValue(intentFile, new TypeReference<List<Intent>>(){});
+				intents.add(intent);
+				mapper.writeValue(intentFile, intents);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public static List<Intent> getIntents(int userId)
+	{
+		final String INTENT_FILE = String.valueOf(userId) + "_intents.json";
+		File intentFile = new File(INTENT_FOLDER + INTENT_FILE);
+		List<Intent> intents = null;
+		if(!intentFile.isFile() || intentFile.length() == 0) {
+			return null;
+		} else {
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				intents = mapper.readValue(intentFile, new TypeReference<List<Intent>>(){});
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return intents;
+	}
+	
+	public static void addAcknowledgement(int userId, Acknowledgement ack) {
+		final String ACK_FILE = String.valueOf(userId) + "_acknowledgements.xml";
+		File ackFile = new File(ACKNOWLEDGEMENT_FOLDER + ACK_FILE);
+		Acknowledgements acks = new Acknowledgements();
+		acks.setAcknowledgements(new ArrayList<Acknowledgement>());
+		//check if file exists or exists and is empty
+		if(!ackFile.isFile() || ackFile.length() == 0) {
+			acks.getAcknowledgements().add(ack);
+			try {
+				JAXBContext jc = JAXBContext.newInstance(Acknowledgements.class);
+				Marshaller marshaller = jc.createMarshaller();
+				marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+				marshaller.marshal(acks, ackFile);
+			} catch (JAXBException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				JAXBContext jc = JAXBContext.newInstance(Acknowledgements.class);
+				Unmarshaller unmarshaller = jc.createUnmarshaller();
+				acks = (Acknowledgements) unmarshaller.unmarshal(ackFile);
+				acks.getAcknowledgements().add(ack);
+				Marshaller marshaller = jc.createMarshaller();
+				marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+				marshaller.marshal(acks, ackFile);
+			} catch (JAXBException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	public static List<Acknowledgement> getAcks(int userId) {
+		final String ACK_FILE = String.valueOf(userId) + "_acknowledgements.xml";
+		File ackFile = new File(ACKNOWLEDGEMENT_FOLDER + ACK_FILE);
+		Acknowledgements acks = new Acknowledgements();
+		JAXBContext jc;
+		try {
+			jc = JAXBContext.newInstance(Acknowledgements.class);
+			Unmarshaller unmarshaller = jc.createUnmarshaller();
+			acks = (Acknowledgements) unmarshaller.unmarshal(ackFile);
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			ErrorMessage errorMessage = new ErrorMessage("Unable to receive intents. Please try again later.", 500);
+			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
+					.entity(errorMessage)
+					.build();
+			throw new WebApplicationException(response);
+		}
+		return acks.getAcknowledgements();
 	}
 }
