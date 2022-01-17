@@ -1,8 +1,6 @@
 package org.tavian.scc.soa.resources;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,7 +17,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.tavian.scc.soa.ServiceUtils;
 import org.tavian.scc.soa.messagequeues.Subscriber;
-import org.tavian.scc.soa.models.ErrorMessage;
 import org.tavian.scc.soa.models.Offer;
 import org.tavian.scc.soa.models.Proposal;
 import org.tavian.scc.soa.models.Weather;
@@ -28,10 +25,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 
 @Path("offers")
 public class OffersResource {
@@ -49,7 +43,7 @@ public class OffersResource {
 		calendar.add(Calendar.DATE, 14);
 		Date dateFourteenDaysFromCurrent = calendar.getTime();
 		List<Proposal> proposals = ServiceUtils.getProposals(userId);
-		if(proposals.isEmpty()) {
+		if(proposals == null || proposals.isEmpty()) {
 			System.out.println("No proposals");
 			return offers;
 		}
@@ -69,7 +63,6 @@ public class OffersResource {
 					System.out.println("users own trip proposal");
 				}
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -79,7 +72,6 @@ public class OffersResource {
 			String lon = proposal.getLocation().getLongitude();
 			try {
 				Date tripDate = sdf.parse(proposal.getTripProposalDate());
-				//calendar2.setTime(tripDate);
 				String dateAsString = sdf2.format(tripDate);
 				String jsonFileName = ServiceUtils.JSON_FOLDER + lat + "_" + lon + "_" + dateAsString + ".json";
 				JSONObject weatherJson = null;
@@ -89,12 +81,9 @@ public class OffersResource {
 					weatherJson = new JSONObject(new String(Files.readAllBytes(Paths.get(jsonFileName))));
 				} else {
 					weatherJson = new JSONObject(ServiceUtils.getWeatherFromDate(lat, lon, dateAsString));
-					if(weatherJson.isEmpty()) {
-						ErrorMessage errorMessage = new ErrorMessage("Unable to get weather for " + proposal.getLocation().getName() + " Please Try again later.", 500);
-						Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
-								.entity(errorMessage)
-								.build();
-						throw new WebApplicationException(response);
+					if(weatherJson == null || weatherJson.isEmpty()) {
+						proposals.remove(proposal);
+						continue;
 					}
 				}
 				JSONArray weatherArr = weatherJson.getJSONObject("data").getJSONArray("weather");
@@ -106,15 +95,11 @@ public class OffersResource {
 				weather.setTemp(temp);
 				weather.setWindSpeed(windSpeed);
 				weather.setWeatherDesc(weatherDesc);
-				System.out.println("Temperature: " + weather.getTemp());
-				System.out.println("wind speed: " + weather.getWindSpeed());
-				System.out.println("weather description" + weather.getWeatherDesc());
 				Offer offer = new Offer();
 				offer.setProposal(proposal);
 				offer.setWeather(weather);
 				offers.add(offer);
 			} catch (ParseException | IOException | JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			

@@ -1,6 +1,8 @@
 package org.tavian.scc.soa.resources;
 
 import java.io.File;
+
+import org.tavian.scc.soa.MqThread;
 import org.tavian.scc.soa.ServiceUtils;
 import org.tavian.scc.soa.messagequeues.Subscriber;
 import org.tavian.scc.soa.models.ErrorMessage;
@@ -27,20 +29,16 @@ public class UserResource {
 		}
 		int id = ServiceUtils.getUniqueId();
 		if (id < 0) {
-			ErrorMessage errorMessage = new ErrorMessage("Unable to get UserID. Please Try again later.", 500);
+			ErrorMessage errorMessage = new ErrorMessage("Unable to generate a UserID. Please Try again later. If error persists please contact support.", 500);
 			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(errorMessage)
 					.build();
 			throw new WebApplicationException(response);
 		}
 		user.setId(id);
-		Subscriber subscriber = new Subscriber();
-		subscriber.setTopic("proposals");
-		subscriber.consumeProposals(id);
-		subscriber.setTopic("intents_" + String.valueOf(id));
-		subscriber.consumeIntents(id);
-		subscriber.setTopic("acknowledgements_" + String.valueOf(id));
-		subscriber.consumeAcknowledgements(id);
+		MqThread mt = new MqThread(id);
+		Thread t = new Thread(mt);
+		t.start();
 		return Response.status(Status.OK)
 				.entity(user)
 				.build();

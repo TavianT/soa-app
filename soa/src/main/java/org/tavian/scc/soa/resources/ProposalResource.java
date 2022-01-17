@@ -26,12 +26,6 @@ public class ProposalResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response createProposal(Proposal proposal) {
-		//debug
-		System.out.println("userId: " + proposal.getUserId());
-		System.out.println("tripProposalDate: " + proposal.getTripProposalDate());
-		System.out.println("location: " + proposal.getLocation().getName());
-		System.out.println("lon: " + proposal.getLocation().getLongitude());
-		System.out.println("lat: " + proposal.getLocation().getLatitude());
 		
 		//error checks
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -80,7 +74,7 @@ public class ProposalResource {
 			}
 			int msgId = ServiceUtils.getUniqueId();
 			if (msgId < 0) {
-				ErrorMessage errorMessage = new ErrorMessage("Unable to generate msgId. Please Try again later.", 500);
+				ErrorMessage errorMessage = new ErrorMessage("Unable to generate msgId. Please Try again later. If error persists please contact support.", 500);
 				Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
 						.entity(errorMessage)
 						.build();
@@ -100,9 +94,7 @@ public class ProposalResource {
 					.build();
 			
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			//throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 		}
 		ErrorMessage errorMessage = new ErrorMessage("Unable to submit proposal. Please Try again later.", 500);
 		Response response = Response.status(Status.INTERNAL_SERVER_ERROR)

@@ -60,9 +60,8 @@ public class Subscriber {
 		}
 	}
 	
-	public List<Proposal> consumeProposals(int userId) {
+	public void consumeProposals(int userId) {
 		String queueName = String.valueOf(userId);
-		List<Proposal> proposals = new ArrayList<Proposal>();
 		try {
 			Connection connection = factory.newConnection();
 	        Channel channel = connection.createChannel();
@@ -80,38 +79,23 @@ public class Subscriber {
 	            String message = new String(delivery.getBody(), "UTF-8");
 	            System.out.println(" [x] Received '" + message + "'");
 	        	Proposal proposal = mapper.readValue(message, Proposal.class);
-	        	ServiceUtils.addProposal(userId, proposal);
+	        	ServiceUtils.addProposal(userId, proposal); //add proposal to users proposal file
 	        };
 	        
 	        channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
 	        
-//	        while(channel.messageCount(queueName) > 0) {
-//	        	//TODO: MIGHT NEED TO CHANGE BACK TO true
-//	        	channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
-//	        }
-//	        channel.close();
-	        
 		} catch (Exception e) {
 			e.printStackTrace();
-			ErrorMessage errorMessage = new ErrorMessage("Unable to receive proposals. Please try again later.", 500);
-			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
-					.entity(errorMessage)
-					.build();
-			throw new WebApplicationException(response);
 		}
-		System.out.println("proposals list size: " + proposals.size());
-		return proposals;
 	}
 	
-	public List<Intent> consumeIntents(int userId) {
+	public void consumeIntents(int userId) {
 		String queueName = String.valueOf(userId);
-		List<Intent> intents = new ArrayList<Intent>();
 		try {
 			Connection connection = factory.newConnection();
 	        Channel channel = connection.createChannel();
 	        
 	        channel.exchangeDeclare(INTENT_EXCHANGE_NAME, EXCHANGE_TYPE.TOPIC.toString().toLowerCase());
-	        //String queueName = channel.queueDeclare().getQueue();
 	        channel.queueDeclare(queueName, true, false, false, null);
 	        
 	        channel.queueBind(queueName, INTENT_EXCHANGE_NAME, topic);
@@ -128,27 +112,13 @@ public class Subscriber {
 	        
 	        channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
 	        
-//	        while(channel.messageCount(queueName) > 0) {
-//	        	//TODO: MIGHT NEED TO CHANGE BACK TO true
-//	        	channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
-//	        }
-//	        channel.close();
-	        
 		} catch (Exception e) {
 			e.printStackTrace();
-			ErrorMessage errorMessage = new ErrorMessage("Unable to receive intents. Please try again later.", 500);
-			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
-					.entity(errorMessage)
-					.build();
-			throw new WebApplicationException(response);
 		}
-		System.out.println("Intents list size: " + intents.size());
-		return intents;
 	}
 	
-	public List<Acknowledgement> consumeAcknowledgements(int userId) {
+	public void consumeAcknowledgements(int userId) {
 		String queueName = String.valueOf(userId);
-		List<Acknowledgement> acks = new ArrayList<Acknowledgement>();
 		try {
 			Connection connection = factory.newConnection();
 	        Channel channel = connection.createChannel();
@@ -158,12 +128,9 @@ public class Subscriber {
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 	        
 	        channel.exchangeDeclare(INTENT_EXCHANGE_NAME, EXCHANGE_TYPE.TOPIC.toString().toLowerCase());
-	        //String queueName = channel.queueDeclare().getQueue();
 	        channel.queueDeclare(queueName, true, false, false, null);
 	        
 	        channel.queueBind(queueName, INTENT_EXCHANGE_NAME, topic);
-	        
-	        System.out.println("Messages in queue: " + channel.messageCount(queueName));
 	       
 	        
 	        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
@@ -174,36 +141,17 @@ public class Subscriber {
 		            Unmarshaller unmarshaller = jc.createUnmarshaller();
 		            Acknowledgement ack = (Acknowledgement) unmarshaller.unmarshal(document);
 		            ServiceUtils.addAcknowledgement(userId, ack);
-		        	//acks.add(ack);
 	            } catch (Exception e) {
 	            	e.printStackTrace();
-	            	ErrorMessage errorMessage = new ErrorMessage("Unable to receive intents. Please try again later.", 500);
-	    			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
-	    					.entity(errorMessage)
-	    					.build();
-	    			throw new WebApplicationException(response);
 	            }
 	            
 	        };
 	        
 	        channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
 	        
-//	        while(channel.messageCount(queueName) > 0) {
-//	        	//TODO: MIGHT NEED TO CHANGE BACK TO true
-//	        	channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
-//	        }
-//	        channel.close();
-	        
 		} catch (Exception e) {
 			e.printStackTrace();
-			ErrorMessage errorMessage = new ErrorMessage("Unable to receive intents. Please try again later.", 500);
-			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
-					.entity(errorMessage)
-					.build();
-			throw new WebApplicationException(response);
 		}
-		System.out.println("Intents list size: " + acks.size());
-		return acks;
 	}
 	
 	

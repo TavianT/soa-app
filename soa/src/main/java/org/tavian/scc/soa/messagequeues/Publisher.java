@@ -19,11 +19,8 @@ import jakarta.ws.rs.core.Response.Status;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeoutException;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
@@ -38,8 +35,6 @@ public class Publisher {
 	private final static String INTENT_EXCHANGE_NAME = "TRAVEL_INTENT";
 	private ConnectionFactory factory;
 	private String topic = "";
-	//Connection connection;
-	//Channel channel;
 	ObjectMapper mapper;
 	TransformerFactory transformerFactory;
 	
@@ -60,8 +55,6 @@ public class Publisher {
 		try(Connection connection = factory.newConnection();
 			Channel channel = connection.createChannel()) {
 			String proposalString = mapper.writeValueAsString(proposal);
-			
-			//channel.exchangeDelete(OFFERS_EXCHANGE_NAME);
 			
 			channel.exchangeDeclare(OFFERS_EXCHANGE_NAME, EXCHANGE_TYPE.TOPIC.toString().toLowerCase());
 			channel.basicPublish(OFFERS_EXCHANGE_NAME,
@@ -99,7 +92,6 @@ public class Publisher {
 					intentString.getBytes(StandardCharsets.UTF_8));
 			System.out.println(" [x] Sent '" + topic + ":" + intentString + "'");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			ErrorMessage errorMessage = new ErrorMessage("Unable to submit intent. Please Try again later.", 500);
 			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -137,7 +129,6 @@ public class Publisher {
 					ackString.getBytes(StandardCharsets.UTF_8));
 			System.out.println(" [x] Sent '" + topic + ":" + ackString + "'");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			ErrorMessage errorMessage = new ErrorMessage("Unable to submit acknowledgement. Please Try again later.", 500);
 			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)

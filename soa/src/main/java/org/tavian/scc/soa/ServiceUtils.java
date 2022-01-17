@@ -3,11 +3,9 @@ package org.tavian.scc.soa;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -17,8 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.tavian.scc.soa.models.Acknowledgement;
 import org.tavian.scc.soa.models.Acknowledgements;
 import org.tavian.scc.soa.models.ErrorMessage;
@@ -40,10 +36,9 @@ import jakarta.xml.bind.Unmarshaller;
 
 
 public class ServiceUtils {
-	//TODO: THIS IS TEMP FILE PATH CHANGE LATER!!!
-	public static final String ROOT = "C:\\Users\\Tavian\\Desktop\\";
+	public static final String ROOT = "C:\\Users\\Tavian\\Desktop\\data\\";
 	public static final String ID_FILE = ROOT + "unique_ids.txt";
-	public static final String JSON_FOLDER = ROOT + "json_files\\";
+	public static final String JSON_FOLDER = ROOT + "weather_json\\";
 	public static final String PROPOSAL_FOLDER = ROOT + "proposals\\";
 	public static final String INTENT_FOLDER = ROOT + "intents\\";
 	public static final String ACKNOWLEDGEMENT_FOLDER = ROOT + "acknowledgements\\";
@@ -75,9 +70,8 @@ public class ServiceUtils {
 				System.out.println("Saved to file");
 			}
 		} catch (IOException | InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			ErrorMessage errorMessage = new ErrorMessage("Unable to generate UserID. Please Try again later.", 500);
+			ErrorMessage errorMessage = new ErrorMessage("Unable to generate unique ID. Please Try again later.", 500);
 			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(errorMessage)
 					.build();
@@ -111,7 +105,6 @@ public class ServiceUtils {
 				id =  getIdFromFile();
 			}
 		} catch (IOException | InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			id =  getIdFromFile();
 			
@@ -123,7 +116,6 @@ public class ServiceUtils {
 		int id = -1;
 		try {
 			File idFile = new File(ID_FILE);
-			//TODO: THIS IS TEMP FILE PATH CHANGE LATER!!!
 			File tempFile = new File("C:\\Users\\Tavian\\Desktop\\temp_file.txt");
 			BufferedReader br = new BufferedReader(new FileReader(idFile));
 			BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
@@ -139,9 +131,8 @@ public class ServiceUtils {
 			idFile.delete();
 			tempFile.renameTo(idFile);
 		} catch (IOException | NumberFormatException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			ErrorMessage errorMessage = new ErrorMessage("Unable to generate UserID. Please Try again later.", 500);
+			ErrorMessage errorMessage = new ErrorMessage("Unable to get unique ID. Please Try again later.", 500);
 			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(errorMessage)
 					.build();
@@ -189,13 +180,10 @@ public class ServiceUtils {
 			try {
 				mapper.writeValue(proposalFile, proposals);
 			} catch (StreamWriteException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (DatabindException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
@@ -204,7 +192,6 @@ public class ServiceUtils {
 				proposals.add(proposal);
 				mapper.writeValue(proposalFile, proposals);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -222,7 +209,6 @@ public class ServiceUtils {
 			try {
 				proposals = mapper.readValue(proposalFile, new TypeReference<List<Proposal>>(){});
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -241,13 +227,10 @@ public class ServiceUtils {
 			try {
 				mapper.writeValue(intentFile, intents);
 			} catch (StreamWriteException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (DatabindException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
@@ -256,7 +239,6 @@ public class ServiceUtils {
 				intents.add(intent);
 				mapper.writeValue(intentFile, intents);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -274,7 +256,6 @@ public class ServiceUtils {
 			try {
 				intents = mapper.readValue(intentFile, new TypeReference<List<Intent>>(){});
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -295,7 +276,6 @@ public class ServiceUtils {
 				marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 				marshaller.marshal(acks, ackFile);
 			} catch (JAXBException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
@@ -308,7 +288,6 @@ public class ServiceUtils {
 				marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 				marshaller.marshal(acks, ackFile);
 			} catch (JAXBException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -323,13 +302,14 @@ public class ServiceUtils {
 			Unmarshaller unmarshaller = jc.createUnmarshaller();
 			acks = (Acknowledgements) unmarshaller.unmarshal(ackFile);
 		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			ErrorMessage errorMessage = new ErrorMessage("Unable to receive intents. Please try again later.", 500);
 			Response response = Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(errorMessage)
 					.build();
 			throw new WebApplicationException(response);
+		} catch (IllegalArgumentException e) {
+			return acks.getAcknowledgements();
 		}
 		return acks.getAcknowledgements();
 	}
