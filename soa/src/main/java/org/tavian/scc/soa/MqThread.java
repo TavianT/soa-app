@@ -9,12 +9,14 @@ public class MqThread implements Runnable {
 		this.id = id;
 	}
 	public void run() {
-		Subscriber subscriber = new Subscriber();
-		subscriber.setTopic("proposals");
-		subscriber.consumeProposals(id);
-		subscriber.setTopic("intents_" + String.valueOf(id));
-		subscriber.consumeIntents(id);
-		subscriber.setTopic("acknowledgements_" + String.valueOf(id));
-		subscriber.consumeAcknowledgements(id);
+		Subscriber proposalSubscriber = new Subscriber();
+		proposalSubscriber.setTopic("proposals");
+		proposalSubscriber.consumeProposals(id);
+		Subscriber intentSubscriber = new Subscriber();
+		intentSubscriber.setTopic("intents_" + String.valueOf(id));
+		intentSubscriber.consumeIntents(id);
+		Subscriber ackSubscriber = new Subscriber();
+		ackSubscriber.setTopic("acknowledgements_" + String.valueOf(id));
+		ackSubscriber.consumeAcknowledgements(id);
 	}
 }

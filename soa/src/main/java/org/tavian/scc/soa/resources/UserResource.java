@@ -4,7 +4,6 @@ import java.io.File;
 
 import org.tavian.scc.soa.MqThread;
 import org.tavian.scc.soa.ServiceUtils;
-import org.tavian.scc.soa.messagequeues.Subscriber;
 import org.tavian.scc.soa.models.ErrorMessage;
 import org.tavian.scc.soa.models.User;
 
